@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mamba Parallel Web - Ultra Optimized</title>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-bubble { max-width: 85%; border-radius: 18px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; animation: fadeIn 0.3s ease; word-wrap: break-word; }
+        .user-bubble { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .bot-bubble { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Mobil Menü Geçişi */
+        #panel-settings { transition: transform 0.3s ease-in-out; z-index: 50; }
+        @media (max-width: 768px) {
+            #panel-settings.closed { transform: translateX(-100%); }
+            #panel-settings.open { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen w-screen overflow-hidden font-sans">
+
+<div class="flex h-full w-full relative overflow-hidden">
+    
+    <aside id="panel-settings" class="fixed inset-y-0 left-0 w-72 bg-slate-900 text-white flex flex-col md:relative md:translate-x-0 closed shadow-2xl md:shadow-none">
+        <div class="p-5 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50">
+                        <i class="fa-solid fa-bolt text-sm text-white"></i>
+                    </div>
+                    <h1 class="text-lg font-bold">Mamba P.</h1>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-6 flex-1 overflow-y-auto pr-2">
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <label class="block text-[10px] font-bold text-blue-400 mb-2 uppercase">Model Paketi (.zip)</label>
+                    <input type="file" id="zip-upload" accept=".zip" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-blue-600 file:text-white bg-slate-900 rounded-lg p-1 border border-slate-700 cursor-pointer"/>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[9px] text-slate-400 uppercase mb-1">Horizon</div>
+                        <div id="stat-horizon" class="text-base font-bold text-blue-400">0</div>
+                    </div>
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[9px] text-slate-400 uppercase mb-1">Vocab</div>
+                        <div id="stat-vocab" class="text-base font-bold text-white">-</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px] text-slate-400 uppercase">Hız (t/s)</span>
+                        <span id="stat-speed" class="font-mono text-green-400 font-bold">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800">
+                <button id="clear-btn" class="w-full mb-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i> TEMİZLE
+                </button>
+                <div id="system-status" class="w-full text-[9px] py-2 px-3 bg-slate-800 rounded-lg flex items-center justify-center gap-2 text-slate-400 uppercase tracking-widest">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> BEKLENİYOR
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 bg-white relative">
+        <header class="h-14 border-b flex items-center justify-between px-4 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+            <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600">
+                <i class="fa-solid fa-bars-staggered text-lg"></i>
+            </button>
+            <h2 class="text-sm font-bold text-slate-700 truncate px-2">Paralel Çıkarım Motoru</h2>
+            <div class="w-10 md:hidden"></div> </header>
+
+        <div id="chat-window" class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col space-y-2 bg-slate-50">
+            <div class="bot-bubble chat-bubble">Sistem hazır. Modeli yükleyin ve konuşmaya başlayın.</div>
+        </div>
+
+        <div class="p-3 md:p-4 bg-white border-t">
+            <div class="max-w-4xl mx-auto flex gap-2 items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 focus-within:border-blue-400 transition-colors">
+                <input type="text" id="user-input" placeholder="Mesajınızı buraya yazın..." class="flex-1 bg-transparent border-0 px-3 py-2 text-sm outline-none" autocomplete="off">
+                <button id="send-btn" class="bg-blue-600 text-white w-10 h-10 rounded-xl hover:bg-blue-700 disabled:opacity-30 flex items-center justify-center shadow-md shadow-blue-200 transition-all shrink-0" disabled>
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+            <p class="text-[9px] text-center text-slate-400 mt-2 uppercase tracking-tighter">Mamba Web UI • On-Device Parallel Inference</p>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Mobil Sidebar Kontrolü
+    function toggleSidebar() {
+        const sidebar = document.getElementById('panel-settings');
+        sidebar.classList.toggle('closed');
+        sidebar.classList.toggle('open');
+    }
+
+    let session = null, meta = null;
+    let vocabMatrix = null;
+    let vocabNorms = null;
+    const FIXED_SEQ_LEN = 64; 
+    const PENALTY_STRENGTH = 1.25;
+
+    const els = {
+        status: document.getElementById('system-status'),
+        chat: document.getElementById('chat-window'),
+        input: document.getElementById('user-input'),
+        btn: document.getElementById('send-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        sHorizon: document.getElementById('stat-horizon'),
+        sVocab: document.getElementById('stat-vocab'),
+        sSpeed: document.getElementById('stat-speed')
+    };
+
+    // Sayfa açılışında otomatik yükleme
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            setStatus("main.zip ARANIYOR...", "loading");
+            const response = await fetch('main.zip');
+            if (response.ok) {
+                const blob = await response.blob();
+                await handleZipProcessing(blob);
+            } else {
+                setStatus("MODEL BEKLENİYOR", "error");
+            }
+        } catch (err) {
+            setStatus("HATA", "error");
+        }
+    });
+
+    function prepareVocabData(vocabList) {
+        const rows = vocabList.length;
+        const cols = vocabList[0].length;
+        const matrix = new Float32Array(rows * cols);
+        const norms = new Float32Array(rows);
+        for (let i = 0; i < rows; i++) {
+            let sumSq = 0;
+            for (let j = 0; j < cols; j++) {
+                const val = vocabList[i][j];
+                matrix[i * cols + j] = val;
+                sumSq += val * val;
+            }
+            norms[i] = sumSq;
+        }
+        return { matrix, norms };
+    }
+
+    async function handleZipProcessing(fileOrBlob) {
+        setStatus("YÜKLENİYOR...", "loading");
+        try {
+            const zip = await JSZip.loadAsync(fileOrBlob);
+            meta = JSON.parse(await zip.file("meta.json").async("string"));
+            meta.pred_horizon = meta.config.pred_horizon || 1;
+            els.sHorizon.innerText = meta.pred_horizon;
+            els.sVocab.innerText = meta.vocab.embeddings.length;
+
+            const prepared = prepareVocabData(meta.vocab.embeddings);
+            vocabMatrix = prepared.matrix;
+            vocabNorms = prepared.norms;
+
+            const modelArray = await zip.file("model.onnx").async("uint8array");
+            session = await ort.InferenceSession.create(modelArray, { 
+                executionProviders: ['wasm'],
+                graphOptimizationLevel: 'all'
+            });
+            
+            setStatus("SİSTEM HAZIR", "ready");
+            els.btn.disabled = false;
+        } catch (err) { 
+            console.error(err);
+            setStatus("HATA", "error"); 
+        }
+    }
+
+    document.getElementById('zip-upload').onchange = async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        await handleZipProcessing(file);
+    };
+
+    els.btn.onclick = async () => {
+        const text = els.input.value.trim(); if (!text || !session) return;
+        addBubble(text, 'user');
+        els.input.value = ''; els.btn.disabled = true;
+        
+        const startT = performance.now();
+        const response = await generateParallel(text);
+        const endT = performance.now();
+        
+        const tokenCount = response.split(" ").length;
+        const duration = (endT - startT) / 1000;
+        els.sSpeed.innerText = (tokenCount / duration).toFixed(1);
+        
+        addBubble(response, 'bot');
+        els.btn.disabled = false;
+    };
+
+    async function generateParallel(prompt) {
+        const vocab = meta.vocab;
+        const horizon = meta.pred_horizon;
+        const embDim = meta.config.emb_dim;
+        const padId = vocab.pad_id || 0;
+
+        let fullPrompt = `<|user|> ${prompt} <|end|> <|bot|>`;
+        let currentIds = fullPrompt.split(/\s+/).map(w => vocab.word_to_id[w] ?? padId);
+        let generatedWords = [];
+        const maxSteps = 40;
+
+        try {
+            for (let step = 0; step < maxSteps; step++) {
+                let windowIds = currentIds.slice(-FIXED_SEQ_LEN);
+                while(windowIds.length < FIXED_SEQ_LEN) windowIds.unshift(padId);
+
+                const inputData = new Float32Array(FIXED_SEQ_LEN * embDim);
+                windowIds.forEach((id, idx) => {
+                    inputData.set(vocab.embeddings[id], idx * embDim);
+                });
+
+                const inputTensor = new ort.Tensor('float32', inputData, [1, FIXED_SEQ_LEN, embDim]);
+                const results = await session.run({ input: inputTensor });
+                const outputData = results.output.data; 
+                
+                const lastSeqOffset = (FIXED_SEQ_LEN - 1) * (horizon * embDim);
+                let stepEnded = false;
+
+                for (let h = 0; h < horizon; h++) {
+                    const vecOffset = lastSeqOffset + (h * embDim);
+                    const vec = outputData.slice(vecOffset, vecOffset + embDim);
+                    const nextWord = findClosestOptimized(vec, vocab, generatedWords);
+                    
+                    if (["<|end|>", "<|pad|>", "[SEP]"].includes(nextWord)) { stepEnded = true; break; }
+                    
+                    generatedWords.push(nextWord);
+                    currentIds.push(vocab.word_to_id[nextWord] || padId);
+                }
+                if (stepEnded || generatedWords.length > 150) break;
+            }
+            return generatedWords.join(" ") || "...";
+        } catch (e) { 
+            return "Hata oluştu."; 
+        }
+    }
+
+    function findClosestOptimized(vec, vocab, history) {
+        let bestId = 0;
+        let minD = Infinity;
+        const dim = vec.length;
+        const recentWords = history.slice(-5);
+
+        for(let i=0; i < vocab.embeddings.length; i++) {
+            const offset = i * dim;
+            let dot = 0;
+            for (let d = 0; d < dim; d++) {
+                dot += vocabMatrix[offset + d] * vec[d];
+            }
+            let d = vocabNorms[i] - 2 * dot;
+            if (recentWords.includes(vocab.id_to_word[i])) {
+                d += Math.abs(d) * (PENALTY_STRENGTH - 1);
+            }
+            if (d < minD) {
+                minD = d;
+                bestId = i;
+            }
+        }
+        return vocab.id_to_word[bestId] || "?";
+    }
+
+    function addBubble(txt, role) {
+        const d = document.createElement('div');
+        d.className = `chat-bubble ${role==='user'?'user-bubble':'bot-bubble'}`;
+        d.innerText = txt;
+        els.chat.appendChild(d); 
+        els.chat.scrollTop = els.chat.scrollHeight;
+    }
+
+    function setStatus(msg, type) {
+        const color = type==='ready' ? 'bg-green-500' : (type==='error' ? 'bg-red-500' : 'bg-yellow-500');
+        els.status.innerHTML = `<span class="w-2 h-2 rounded-full ${color}"></span> ${msg}`;
+    }
+
+    els.clearBtn.onclick = () => {
+        els.chat.innerHTML = '<div class="bot-bubble chat-bubble">Geçmiş temizlendi.</div>';
+        els.sSpeed.innerText = "-";
+    };
+
+    els.input.onkeypress = (e) => {
+        if (e.key === 'Enter' && !els.btn.disabled) els.btn.click();
+    };
+</script>
+</body>
+</html>
