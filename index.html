@@ -2,26 +2,42 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Mini Power - Paralel Çıkarım Motoru</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Dinamik Viewport Yüksekliği Ayarı */
+        :root {
+            --app-height: 100dvh;
+        }
+        
+        body {
+            height: var(--app-height);
+            overscroll-behavior-y: contain; /* Çekip yenilemeyi engeller */
+        }
+
         .chat-bubble { max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; animation: fadeIn 0.3s ease; word-wrap: break-word; }
         .user-bubble { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
         .bot-bubble { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
-        #panel-settings { transition: transform 0.3s ease-in-out; z-index: 50; }
+        #panel-settings { transition: transform 0.3s ease-in-out; z-index: 100; }
         @media (max-width: 768px) {
             #panel-settings.closed { transform: translateX(-100%); }
             #panel-settings.open { transform: translateX(0); }
         }
+
+        /* Mobil Scroll Alanı İyileştirmesi */
+        #chat-window {
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
-<body class="bg-slate-50 h-screen w-screen overflow-hidden font-sans">
+<body class="bg-slate-50 overflow-hidden font-sans">
 
 <div class="flex h-full w-full relative overflow-hidden">
     
@@ -34,7 +50,7 @@
                     </div>
                     <h1 class="text-lg font-bold tracking-tight">Mini Power</h1>
                 </div>
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-2">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -64,7 +80,7 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800">
+            <div class="pt-4 border-t border-slate-800 mt-auto">
                 <button id="clear-btn" class="w-full mb-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 border border-red-500/20">
                     <i class="fa-solid fa-trash-can text-[10px]"></i> SOHBETİ TEMİZLE
                 </button>
@@ -75,8 +91,8 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-w-0 bg-white relative">
-        <header class="h-14 border-b flex items-center justify-between px-4 bg-white/80 backdrop-blur-md sticky top-0 z-20">
+    <main class="flex-1 flex flex-col min-w-0 bg-white relative h-full">
+        <header class="h-14 border-b flex items-center justify-between px-4 bg-white/80 backdrop-blur-md shrink-0 z-20">
             <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600">
                 <i class="fa-solid fa-bars-staggered text-lg"></i>
             </button>
@@ -88,7 +104,7 @@
             <div id="welcome-msg" class="bot-bubble chat-bubble">Mini Power sistemine hoş geldiniz. Model (main.zip) yükleniyor, lütfen bekleyin...</div>
         </div>
 
-        <div class="p-3 md:p-4 bg-white border-t">
+        <div class="p-3 md:p-4 bg-white border-t shrink-0 pb-[safe-area-inset-bottom]">
             <div class="max-w-4xl mx-auto flex gap-2 items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 focus-within:border-blue-400 transition-all">
                 <input type="text" id="user-input" placeholder="Bir şeyler yazın..." class="flex-1 bg-transparent border-0 px-3 py-2 text-sm outline-none" autocomplete="off">
                 <button id="send-btn" class="bg-blue-600 text-white w-10 h-10 rounded-xl hover:bg-blue-700 disabled:opacity-30 flex items-center justify-center shadow-md shadow-blue-200 transition-all shrink-0" disabled>
@@ -101,6 +117,7 @@
 </div>
 
 <script>
+    // Mobil Sidebar Toggle
     function toggleSidebar() {
         const sidebar = document.getElementById('panel-settings');
         sidebar.classList.toggle('closed');
@@ -125,7 +142,6 @@
         sSpeed: document.getElementById('stat-speed')
     };
 
-    // Sayfa açıldığında otomatik yükleme
     window.addEventListener('DOMContentLoaded', async () => {
         try {
             updateStatus("main.zip ARANIYOR...", "loading");
@@ -181,8 +197,6 @@
             
             updateStatus("SİSTEM HAZIR", "ready");
             els.btn.disabled = false;
-
-            // Chat ekranını temizle ve hazır mesajını ver
             els.chat.innerHTML = ''; 
             addBubble(isAuto ? "Mini Power otomatik olarak yüklendi. Sistem konuşmaya hazır!" : "Model paketi yüklendi. Hemen başlayabilirsiniz.", "bot");
 
