@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mamba Parallel Web - Ultra Optimized</title>
+    <title>Mini Power - Paralel Çıkarım Motoru</title>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .chat-bubble { max-width: 85%; border-radius: 18px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; animation: fadeIn 0.3s ease; word-wrap: break-word; }
-        .user-bubble { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .bot-bubble { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-bubble { max-width: 85%; border-radius: 18px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; animation: fadeIn 0.3s ease; word-wrap: break-word; }
+        .user-bubble { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
+        .bot-bubble { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
         #panel-settings { transition: transform 0.3s ease-in-out; z-index: 50; }
@@ -32,7 +32,7 @@
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50">
                         <i class="fa-solid fa-bolt text-sm text-white"></i>
                     </div>
-                    <h1 class="text-lg font-bold">Mini Power</h1>
+                    <h1 class="text-lg font-bold tracking-tight">Mini Power</h1>
                 </div>
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -41,34 +41,34 @@
 
             <div class="space-y-6 flex-1 overflow-y-auto pr-2">
                 <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                    <label class="block text-[10px] font-bold text-blue-400 mb-2 uppercase">Model Paketi (.zip)</label>
+                    <label class="block text-[10px] font-bold text-blue-400 mb-2 uppercase tracking-wider">Model Paketi (.zip)</label>
                     <input type="file" id="zip-upload" accept=".zip" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-blue-600 file:text-white bg-slate-900 rounded-lg p-1 border border-slate-700 cursor-pointer"/>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        <div class="text-[9px] text-slate-400 uppercase mb-1">Horizon</div>
+                        <div class="text-[10px] text-slate-400 uppercase mb-1 font-semibold">Blok</div>
                         <div id="stat-horizon" class="text-base font-bold text-blue-400">0</div>
                     </div>
                     <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        <div class="text-[9px] text-slate-400 uppercase mb-1">Vocab</div>
+                        <div class="text-[10px] text-slate-400 uppercase mb-1 font-semibold">Sözlük</div>
                         <div id="stat-vocab" class="text-base font-bold text-white">-</div>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-[10px] text-slate-400 uppercase">Hız (t/s)</span>
-                        <span id="stat-speed" class="font-mono text-green-400 font-bold">-</span>
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold">Çıkarım Hızı</span>
+                        <span id="stat-speed" class="font-mono text-green-400 font-bold">- t/s</span>
                     </div>
                 </div>
             </div>
 
             <div class="pt-4 border-t border-slate-800">
-                <button id="clear-btn" class="w-full mb-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trash-can text-[10px]"></i> TEMİZLE
+                <button id="clear-btn" class="w-full mb-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 border border-red-500/20">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i> SOHBETİ TEMİZLE
                 </button>
-                <div id="system-status" class="w-full text-[9px] py-2 px-3 bg-slate-800 rounded-lg flex items-center justify-center gap-2 text-slate-400 uppercase tracking-widest">
+                <div id="system-status" class="w-full text-[9px] py-2 px-3 bg-slate-800 rounded-lg flex items-center justify-center gap-2 text-slate-400 uppercase tracking-widest border border-slate-700">
                     <span id="status-dot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> <span id="status-text">BEKLENİYOR</span>
                 </div>
             </div>
@@ -80,21 +80,22 @@
             <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600">
                 <i class="fa-solid fa-bars-staggered text-lg"></i>
             </button>
-            <h2 class="text-sm font-bold text-slate-700 truncate px-2">Paralel Çıkarım Motoru</h2>
+            <h2 class="text-sm font-bold text-slate-700 truncate px-2">Paralel Çıkarım Oturumu</h2>
             <div class="w-10 md:hidden"></div>
         </header>
 
         <div id="chat-window" class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col space-y-2 bg-slate-50">
-            <div id="welcome-msg" class="bot-bubble chat-bubble">Model dosyası (main.zip) aranıyor, lütfen bekleyin...</div>
+            <div id="welcome-msg" class="bot-bubble chat-bubble">Mini Power sistemine hoş geldiniz. Model (main.zip) yükleniyor, lütfen bekleyin...</div>
         </div>
 
         <div class="p-3 md:p-4 bg-white border-t">
-            <div class="max-w-4xl mx-auto flex gap-2 items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 focus-within:border-blue-400 transition-colors">
-                <input type="text" id="user-input" placeholder="Mesajınızı buraya yazın..." class="flex-1 bg-transparent border-0 px-3 py-2 text-sm outline-none" autocomplete="off">
+            <div class="max-w-4xl mx-auto flex gap-2 items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 focus-within:border-blue-400 transition-all">
+                <input type="text" id="user-input" placeholder="Bir şeyler yazın..." class="flex-1 bg-transparent border-0 px-3 py-2 text-sm outline-none" autocomplete="off">
                 <button id="send-btn" class="bg-blue-600 text-white w-10 h-10 rounded-xl hover:bg-blue-700 disabled:opacity-30 flex items-center justify-center shadow-md shadow-blue-200 transition-all shrink-0" disabled>
                     <i class="fa-solid fa-paper-plane text-sm"></i>
                 </button>
             </div>
+            <p class="text-[9px] text-center text-slate-400 mt-2 uppercase tracking-tighter font-medium">Mini Power • Cihaz İçi Vektörize Motor</p>
         </div>
     </main>
 </div>
@@ -113,8 +114,8 @@
     const PENALTY_STRENGTH = 1.25;
 
     const els = {
-        status: document.getElementById('status-text'),
-        dot: document.getElementById('status-dot'),
+        statusText: document.getElementById('status-text'),
+        statusDot: document.getElementById('status-dot'),
         chat: document.getElementById('chat-window'),
         input: document.getElementById('user-input'),
         btn: document.getElementById('send-btn'),
@@ -124,19 +125,20 @@
         sSpeed: document.getElementById('stat-speed')
     };
 
+    // Sayfa açıldığında otomatik yükleme
     window.addEventListener('DOMContentLoaded', async () => {
         try {
-            setStatus("main.zip ARANIYOR...", "loading");
+            updateStatus("main.zip ARANIYOR...", "loading");
             const response = await fetch('./main.zip');
             if (response.ok) {
                 const blob = await response.blob();
-                await handleZipProcessing(blob, true); // true = otomatik yükleme
+                await handleZipProcessing(blob, true);
             } else {
-                setStatus("MODEL SEÇİN", "error");
-                document.getElementById('welcome-msg').innerText = "Otomatik model bulunamadı. Lütfen manuel olarak .zip dosyasını yükleyin.";
+                updateStatus("MODEL SEÇİN", "error");
+                document.getElementById('welcome-msg').innerText = "Otomatik model bulunamadı. Lütfen sol panelden bir .zip paketi yükleyin.";
             }
         } catch (err) {
-            setStatus("BAĞLANTI HATASI", "error");
+            updateStatus("BAĞLANTI HATASI", "error");
         }
     });
 
@@ -158,11 +160,12 @@
     }
 
     async function handleZipProcessing(fileOrBlob, isAuto = false) {
-        setStatus("YÜKLENİYOR...", "loading");
+        updateStatus("YÜKLENİYOR...", "loading");
         try {
             const zip = await JSZip.loadAsync(fileOrBlob);
             meta = JSON.parse(await zip.file("meta.json").async("string"));
             meta.pred_horizon = meta.config.pred_horizon || 1;
+            
             els.sHorizon.innerText = meta.pred_horizon;
             els.sVocab.innerText = meta.vocab.embeddings.length;
 
@@ -176,17 +179,17 @@
                 graphOptimizationLevel: 'all'
             });
             
-            setStatus("SİSTEM HAZIR", "ready");
+            updateStatus("SİSTEM HAZIR", "ready");
             els.btn.disabled = false;
 
-            // Karışıklığı gideren kısım:
+            // Chat ekranını temizle ve hazır mesajını ver
             els.chat.innerHTML = ''; 
-            addBubble(isAuto ? "Otomatik model başarıyla yüklendi. Merhaba! Size nasıl yardımcı olabilirim?" : "Model paketi yüklendi. Sistem hazır.", "bot");
+            addBubble(isAuto ? "Mini Power otomatik olarak yüklendi. Sistem konuşmaya hazır!" : "Model paketi yüklendi. Hemen başlayabilirsiniz.", "bot");
 
         } catch (err) { 
             console.error(err);
-            setStatus("HATA", "error"); 
-            addBubble("Model yüklenirken bir hata oluştu: " + err.message, "bot");
+            updateStatus("HATA", "error"); 
+            addBubble("Model yükleme başarısız oldu. Lütfen paketi kontrol edin.", "bot");
         }
     }
 
@@ -206,7 +209,7 @@
         
         const tokenCount = response.split(" ").length;
         const duration = (endT - startT) / 1000;
-        els.sSpeed.innerText = (tokenCount / duration).toFixed(1);
+        els.sSpeed.innerText = (tokenCount / duration).toFixed(1) + " t/s";
         
         addBubble(response, 'bot');
         els.btn.disabled = false;
@@ -220,7 +223,7 @@
         let fullPrompt = `<|user|> ${prompt} <|end|> <|bot|>`;
         let currentIds = fullPrompt.split(/\s+/).map(w => vocab.word_to_id[w] ?? padId);
         let generatedWords = [];
-        const maxSteps = 40;
+        const maxSteps = 45;
 
         try {
             for (let step = 0; step < maxSteps; step++) {
@@ -242,15 +245,15 @@
                     generatedWords.push(nextWord);
                     currentIds.push(vocab.word_to_id[nextWord] || padId);
                 }
-                if (stepEnded || generatedWords.length > 150) break;
+                if (stepEnded || generatedWords.length > 180) break;
             }
             return generatedWords.join(" ") || "...";
-        } catch (e) { return "Hata: " + e.message; }
+        } catch (e) { return "Üretim sırasında hata: " + e.message; }
     }
 
     function findClosestOptimized(vec, vocab, history) {
         let bestId = 0; let minD = Infinity; const dim = vec.length;
-        const recentWords = history.slice(-5);
+        const recentWords = history.slice(-8);
         for(let i=0; i < vocab.embeddings.length; i++) {
             const offset = i * dim; let dot = 0;
             for (let d = 0; d < dim; d++) { dot += vocabMatrix[offset + d] * vec[d]; }
@@ -269,15 +272,15 @@
         els.chat.scrollTop = els.chat.scrollHeight;
     }
 
-    function setStatus(msg, type) {
+    function updateStatus(msg, type) {
         const color = type==='ready' ? 'bg-green-500' : (type==='error' ? 'bg-red-500' : 'bg-yellow-500');
-        els.dot.className = `w-2 h-2 rounded-full ${color} ${type==='loading'?'animate-pulse':''}`;
-        els.status.innerText = msg;
+        els.statusDot.className = `w-2 h-2 rounded-full ${color} ${type==='loading'?'animate-pulse':''}`;
+        els.statusText.innerText = msg;
     }
 
     els.clearBtn.onclick = () => {
-        els.chat.innerHTML = '<div class="bot-bubble chat-bubble">Geçmiş temizlendi.</div>';
-        els.sSpeed.innerText = "-";
+        els.chat.innerHTML = '<div class="bot-bubble chat-bubble">Sohbet geçmişi temizlendi.</div>';
+        els.sSpeed.innerText = "- t/s";
     };
 
     els.input.onkeypress = (e) => {
